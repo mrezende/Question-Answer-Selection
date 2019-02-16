@@ -4,6 +4,8 @@ from data import QAData, Vocabulary
 import pickle
 import random
 from scipy.stats import rankdata
+import json
+from keras.preprocessing.text import Tokenizer
 
 def main(mode='test', question=None, answers=None):
     """
@@ -19,12 +21,20 @@ def main(mode='test', question=None, answers=None):
     """
 
     # get the train and predict model model
-    vocabulary = Vocabulary("./data/vocab_all.txt")
-    embedding_file = "./data/word2vec_100_dim.embeddings"
-    qa_model = QAModel()
-    train_model, predict_model = qa_model.get_lstm_cnn_model(embedding_file, len(vocabulary))
 
-    epoch = 1
+
+    samples = []
+    with open('data/samples_for_tokenizer.json', 'r') as read_file:
+        samples = json.load(read_file)
+    tokenizer = Tokenizer()
+    tokenizer.fit_on_texts(samples)
+
+
+
+    qa_model = QAModel()
+    train_model, predict_model = qa_model.get_lstm_cnn_model(len(tokenizer.word_index))
+
+    epoch = 10
     if mode == 'train':
         for i in range(epoch):
             print ('Training epoch', i)
@@ -62,7 +72,7 @@ def main(mode='test', question=None, answers=None):
             print (i, len(data))
 
             # pad the data and get it in desired format
-            indices, answers, question = qa_data.process_data(d)
+            answers, question = qa_data.process_data(d)
 
             # get the similarity score
             sims = predict_model.predict([question, answers])
@@ -92,7 +102,7 @@ def main(mode='test', question=None, answers=None):
         return max_r
 
 if __name__ == "__main__":
-    main(mode='predict')
+    main(mode='train')
 
 def test(question, answers):
     return main(mode='test', question=question, answers=answers)

@@ -1,38 +1,8 @@
 import random
 from collections import namedtuple
 import pickle
-
-
-class Vocabulary(dict):
-    """
-    Bi-directional look up dictionary for the vocabulary
-
-    Args:
-        (dict): the default python dict class is extended
-    """
-
-    def __init__(self, vocabulary_file_name):
-        with open(vocabulary_file_name) as vocabulary_file:
-            for line in vocabulary_file:
-                key, value = line.split()
-                self[int(key)] = value
-        self[0] = '<PAD>'
-
-    def __setitem__(self, key, value):
-        if key in self:
-            raise Exception('Repeat Key', key)
-        if value in self:
-            raise Exception('Repeat value', value)
-        dict.__setitem__(self, key, value)
-        dict.__setitem__(self, value, key)
-
-    def __delitem__(self, key):
-        dict.__delitem__(self, self[key])
-        dict.__delitem__(self, key)
-
-    def __len__(self):
-        return dict.__len__(self) // 2
-
+import json
+from keras.preprocessing.text import Tokenizer
 
 class QAData():
     """
@@ -40,11 +10,21 @@ class QAData():
     """
 
     def __init__(self):
-        self.vocabulary = Vocabulary("./data/vocab_all.txt")
+        self.samples = []
+        with open('data/samples_for_tokenizer.json', 'r') as read_file:
+            self.samples = json.load(read_file)
+        self.tokenizer = Tokenizer()
+        self.tokenizer.fit_on_texts(self.samples)
         self.dec_timesteps=150
         self.enc_timesteps=150
-        self.answers = pickle.load(open("./data/answers.pkl",'rb'))
-        self.training_set = pickle.load(open("./data/train.pkl",'rb'))
+
+        self.training_set = []
+        with open('data/train.json', 'r') as read_file:
+            self.training_set = json.load(read_file)
+
+        self.answers = []
+        with open('data/answers.json', 'r') as read_file:
+            self.answers = json.load(read_file)
 
     def pad(self, data, length):
         """
@@ -67,12 +47,12 @@ class QAData():
         good_answers = []
         for j, qa in enumerate(self.training_set):
             questions.extend([qa['question']] * len(qa['answers']))
-            good_answers.extend([self.answers[i] for i in qa['answers']])
+            good_answers.extend([i for i in qa['answers']])
 
         # pad the question and answers
         questions = self.pad(questions, self.enc_timesteps)
         good_answers = self.pad(good_answers, self.dec_timesteps)
-        bad_answers = self.pad(random.sample(list(self.answers.values()), len(good_answers)), self.dec_timesteps)
+        bad_answers = self.pad(random.sample(self.answers, len(good_answers)), self.dec_timesteps)
 
         return questions,good_answers,bad_answers
 
@@ -81,10 +61,10 @@ class QAData():
         Process the predection data
         """
 
-        indices = d['good'] + d['bad']
-        answers = self.pad([self.answers[i] for i in indices], self.dec_timesteps)
-        question = self.pad([d['question']] * len(indices), self.enc_timesteps)
-        return indices,answers,question
+        answers = d['good'] + d['bad']
+        answers = self.pad(answers, self.dec_timesteps)
+        question = self.pad([d['question']] * len(answers), self.enc_timesteps)
+        return answers,question
 
     def process_test_data(self, question, answers):
         """
