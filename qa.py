@@ -1,6 +1,6 @@
 import numpy as np
 from model import QAModel
-from data import QAData, Vocabulary
+from data import QAData
 import pickle
 import random
 from scipy.stats import rankdata
