@@ -32,7 +32,7 @@ def main(mode='test', question=None, answers=None):
 
 
     qa_model = QAModel()
-    train_model, predict_model = qa_model.get_lstm_cnn_model(len(tokenizer.word_index))
+    train_model, predict_model = qa_model.get_lstm_cnn_model(len(tokenizer.word_index) + 1)
 
     epoch = 10
     if mode == 'train':
