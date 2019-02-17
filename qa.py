@@ -34,7 +34,7 @@ def main(mode='test', question=None, answers=None):
     qa_model = QAModel()
     train_model, predict_model = qa_model.get_lstm_cnn_model(len(tokenizer.word_index) + 1)
 
-    epoch = 10
+    epoch = 1
     if mode == 'train':
         for i in range(epoch):
             print ('Training epoch', i)
@@ -48,8 +48,8 @@ def main(mode='test', question=None, answers=None):
             train_model.fit(
                 [questions, good_answers, bad_answers],
                 Y,
-                epochs=1,
-                batch_size=64,
+                epochs=100,
+                batch_size=32,
                 validation_split=0.1,
                 verbose=1
             )
@@ -105,7 +105,7 @@ def main(mode='test', question=None, answers=None):
         return max_r
 
 if __name__ == "__main__":
-    main(mode='predict')
+    main(mode='train')
 
 def test(question, answers):
     return main(mode='test', question=question, answers=answers)
