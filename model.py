@@ -155,9 +155,9 @@ class QAModel():
         #    output_shape=lambda x: x[0]
         #)
 
-        good_bad_concatenated = concatenate([good_similarity, bad_similarity])
+        #good_bad_concatenated = concatenate([good_similarity, bad_similarity])
         loss = Lambda(function=lambda x: K.relu(margin - x[0] + x[1]), output_shape=lambda x: x[0])(
-            good_bad_concatenated)
+            [good_similarity, bad_similarity])
 
         # return the training and prediction model
         prediction_model = Model(inputs=[question, answer_good], outputs=good_similarity, name='prediction_model')
