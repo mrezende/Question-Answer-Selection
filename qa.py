@@ -59,12 +59,15 @@ def main(mode='test', question=None, answers=None):
             predict_model.save_weights('model/predict_weights_epoch_' + str(epoch) + '.h5', overwrite=True)
     elif mode == 'predict':
         # load the evaluation data
-        data = pickle.load(open("./data/dev.pkl",'rb'))
+        data = []
+        with open('data/test.json') as read_file:
+            data = json.load(read_file)
+
         random.shuffle(data)
 
         # load weights from trained model
         qa_data = QAData()
-        predict_model.load_weights('model/cnnlastm_predict_weights_epoch_1.h5')
+        predict_model.load_weights('model/predict_weights_epoch_10.h5')
 
         c = 0
         c1 = 0
@@ -94,7 +97,7 @@ def main(mode='test', question=None, answers=None):
         answers, question = qa_data.process_test_data(question, answers)
 
         # load weights from the trained model
-        predict_model.load_weights('model/cnnlastm_predict_weights_epoch_1.h5')
+        predict_model.load_weights('model/predict_weights_epoch_10.h5')
 
         # get similarity score
         sims = predict_model.predict([question, answers])
@@ -102,7 +105,7 @@ def main(mode='test', question=None, answers=None):
         return max_r
 
 if __name__ == "__main__":
-    main(mode='train')
+    main(mode='predict')
 
 def test(question, answers):
     return main(mode='test', question=question, answers=answers)
