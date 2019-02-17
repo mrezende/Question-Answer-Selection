@@ -141,8 +141,8 @@ class QAModel():
         # get similarity similarity score
         similarity = self.get_cosine_similarity()
         #merged_model = merge([question_pool, answer_pool],mode=similarity, output_shape=lambda _: (None, 1))
-        question_answer_concatenated = concatenate([question_pool, answer_pool])
-        merged_model = Lambda(function=similarity, output_shape=lambda _: (None, 1))(question_answer_concatenated)
+        #question_answer_concatenated = concatenate([question_pool, answer_pool])
+        merged_model = Lambda(function=similarity, output_shape=lambda _: (None, 1))([question_pool, answer_pool])
 
         lstm_convolution_model = Model(inputs=[question, answer], outputs=merged_model, name='lstm_convolution_model')
         good_similarity = lstm_convolution_model([question, answer_good])
