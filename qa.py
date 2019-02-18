@@ -1,13 +1,14 @@
 import numpy as np
 from model import QAModel
 from data import QAData
-import pickle
 import random
 from scipy.stats import rankdata
 import json
 from keras.preprocessing.text import Tokenizer
 import argparse
 import logging
+import os
+import sys
 
 
 def main(mode='train', question=None, answers=None, epochs=100, batch_size=64, validation_split=0.2):
