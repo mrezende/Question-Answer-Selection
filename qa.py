@@ -6,8 +6,11 @@ import random
 from scipy.stats import rankdata
 import json
 from keras.preprocessing.text import Tokenizer
+import argparse
+import logging
 
-def main(mode='test', question=None, answers=None):
+
+def main(mode='train', question=None, answers=None, epochs=100, batch_size=64, validation_split=0.2):
     """
     This function is used to train, predict or test
 
@@ -43,20 +46,23 @@ def main(mode='test', question=None, answers=None):
             qa_data = QAData()
             questions, good_answers, bad_answers = qa_data.get_training_data()
 
+            logger.info(f'Training: epochs {epochs}, batch_size {batch_size}, validation_split {validation_split}')
             # train the model
             Y = np.zeros(shape=(questions.shape[0],))
             train_model.fit(
                 [questions, good_answers, bad_answers],
                 Y,
-                epochs=100,
-                batch_size=32,
-                validation_split=0.1,
+                epochs=epochs,
+                batch_size=batch_size,
+                validation_split=validation_split,
                 verbose=1
             )
 
             # save the trained model
             train_model.save_weights('model/train_weights_epoch_' + str(epoch) + '.h5', overwrite=True)
+            logger.info('model/train_weights_epoch_' + str(epoch) + '.h5')
             predict_model.save_weights('model/predict_weights_epoch_' + str(epoch) + '.h5', overwrite=True)
+            logger.info('model/predict_weights_epoch_' + str(epoch) + '.h5')
     elif mode == 'predict':
         # load the evaluation data
         data = []
@@ -105,7 +111,23 @@ def main(mode='test', question=None, answers=None):
         return max_r
 
 if __name__ == "__main__":
-    main(mode='train')
+    # parse arguments
+    parser = argparse.ArgumentParser(description='run question answer selection')
+    parser.add_argument('--mode', metavar='MODE', type=str, default="train", help='mode: train/predict/test')
+    parser.add_argument('--epochs', metavar='EPOCHS', type=int, default=100, help='epochs for train')
+    parser.add_argument('--batch_size', metavar='BATCH SIZE', type=int, default=64, help='batch size for train')
+    parser.add_argument('--validation_split', metavar='VALIDATION SPLIT', type=float, default=0.2,
+                        help='validation split: 0.1 for an example')
+
+    args = parser.parse_args()
+
+    # configure logging
+    logger = logging.getLogger(os.path.basename(sys.argv[0]))
+    logging.basicConfig(format='%(asctime)s: %(levelname)s: %(message)s')
+    logging.root.setLevel(level=logging.INFO)
+    logger.info('running %s' % ' '.join(sys.argv))
+
+    main(mode=args.mode, epochs=args.epochs, batch_size=args.batch_size, validation_split=args.validation_split)
 
 def test(question, answers):
     return main(mode='test', question=question, answers=answers)
