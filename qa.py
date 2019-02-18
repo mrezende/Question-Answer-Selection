@@ -29,10 +29,10 @@ def main(mode='test', question=None, answers=None):
     tokenizer = Tokenizer()
     tokenizer.fit_on_texts(samples)
 
-
+    embedding_file = "./data/word2vec_100_dim.embeddings"
 
     qa_model = QAModel()
-    train_model, predict_model = qa_model.get_lstm_cnn_model(len(tokenizer.word_index) + 1)
+    train_model, predict_model = qa_model.get_lstm_cnn_model(embedding_file, len(tokenizer.word_index) + 1)
 
     epoch = 1
     if mode == 'train':

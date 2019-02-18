@@ -12,7 +12,7 @@ class QAModel():
         return lambda x: dot(x[0], x[1]) / K.maximum(K.sqrt(dot(x[0], x[0]) * dot(x[1], x[1])), K.epsilon())
 
 
-    def get_bilstm_model(self, vocab_size):
+    def get_bilstm_model(self, embedding_file, vocab_size):
         """
         Return the bilstm training and prediction model
 
@@ -36,8 +36,8 @@ class QAModel():
         answer_good = Input(shape=(dec_timesteps,), dtype='int32', name='answer_good_base')
         answer_bad = Input(shape=(dec_timesteps,), dtype='int32', name='answer_bad_base')
 
-
-        qa_embedding = Embedding(input_dim=vocab_size,output_dim=100,mask_zero=True)
+        weights = np.load(embedding_file)
+        qa_embedding = Embedding(input_dim=vocab_size, output_dim=weights.shape[1], mask_zero=True, weights=[weights])
         bi_lstm = Bidirectional(LSTM(activation='tanh', dropout=0.2, units=hidden_dim, return_sequences=False))
 
         # embed the question and pass it through bilstm
@@ -80,7 +80,7 @@ class QAModel():
         return training_model, prediction_model
 
 
-    def get_lstm_cnn_model(self, vocab_size):
+    def get_lstm_cnn_model(self,embedding_file,  vocab_size):
         """
         Return the bilstm + cnn training and prediction model
 
@@ -97,6 +97,7 @@ class QAModel():
         hidden_dim = 200
         enc_timesteps = 150
         dec_timesteps = 150
+        weights = np.load(embedding_file)
 
         # initialize the question and answer shapes and datatype
         question = Input(shape=(enc_timesteps,), dtype='int32', name='question_base')
@@ -105,7 +106,7 @@ class QAModel():
         answer_bad = Input(shape=(dec_timesteps,), dtype='int32', name='answer_bad_base')
 
         # embed the question and answers
-        qa_embedding = Embedding(input_dim=vocab_size,output_dim=100)
+        qa_embedding = Embedding(input_dim=vocab_size, output_dim=weights.shape[1], weights=[weights])
         question_embedding =  qa_embedding(question)
         answer_embedding =  qa_embedding(answer)
 
