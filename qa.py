@@ -9,6 +9,7 @@ import argparse
 import logging
 import os
 import sys
+import pandas as pd
 
 
 def main(mode='train', question=None, answers=None, epochs=100, batch_size=64, validation_split=0.2):
@@ -50,7 +51,7 @@ def main(mode='train', question=None, answers=None, epochs=100, batch_size=64, v
             logger.info(f'Training: epochs {epochs}, batch_size {batch_size}, validation_split {validation_split}')
             # train the model
             Y = np.zeros(shape=(questions.shape[0],))
-            train_model.fit(
+            callback = train_model.fit(
                 [questions, good_answers, bad_answers],
                 Y,
                 epochs=epochs,
@@ -58,6 +59,13 @@ def main(mode='train', question=None, answers=None, epochs=100, batch_size=64, v
                 validation_split=validation_split,
                 verbose=1
             )
+
+            df = pd.DataFrame(callback.history)
+            df.insert(0, 'epochs', range(0, len(df)))
+            df = pd.melt(df, id_vars=['epochs'])
+            plot = ggplot(aes(x = 'epochs', y='value', color='variable'), data=df)+geom_line()
+            logger.info(f'saving loss, val_loss plot: {'baseline.png'}')
+            plot.save('baseline.png')
 
             # save the trained model
             train_model.save_weights('model/train_weights_epoch_' + str(epoch) + '.h5', overwrite=True)
