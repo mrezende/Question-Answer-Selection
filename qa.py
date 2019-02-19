@@ -12,6 +12,7 @@ import sys
 import pandas as pd
 from ggplot import *
 from keras import backend as K
+from keras.callbacks import EarlyStopping
 
 def train(train_model, model_name='baseline', epochs=10, batch_size=64, validation_split=0.2):
     # load training data
@@ -21,22 +22,26 @@ def train(train_model, model_name='baseline', epochs=10, batch_size=64, validati
     logger.info(f'Training: epochs {epochs}, batch_size {batch_size}, validation_split {validation_split}')
     # train the model
     Y = np.zeros(shape=(questions.shape[0],))
-    callback = train_model.fit(
+    early_stopping = EarlyStopping(monitor='val_loss', patience=2)
+    hist = train_model.fit(
         [questions, good_answers, bad_answers],
         Y,
         epochs=epochs,
         batch_size=batch_size,
         validation_split=validation_split,
-        verbose=1
+        verbose=1,
+        callbacks=[early_stopping]
     )
 
-    df = pd.DataFrame(callback.history)
+    # save plot val_loss, loss 
+
+    df = pd.DataFrame(hist.history)
     df.insert(0, 'epochs', range(0, len(df)))
     df = pd.melt(df, id_vars=['epochs'])
     plot = ggplot(aes(x='epochs', y='value', color='variable'), data=df) + geom_line()
     filename = f'{model_name}_plot.png'
     logger.info(f'saving loss, val_loss plot: {filename}')
-    plot.save('baseline.png')
+    plot.save(filename)
 
     # save the trained model
     train_model.save_weights(f'model/train_weights_{model_name}.h5', overwrite=True)
