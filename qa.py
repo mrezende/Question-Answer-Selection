@@ -140,7 +140,7 @@ def main(mode='train', question=None, answers=None, epochs=100, batch_size=64, v
 
         # load weights from trained model
         qa_data = QAData()
-        predict_model.load_weights('model/predict_weights_epoch_10.h5')
+        predict_model.load_weights('model/train_weights_small.h5')
 
         c = 0
         c1 = 0
