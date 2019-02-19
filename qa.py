@@ -13,6 +13,36 @@ import pandas as pd
 from ggplot import *
 from keras import backend as K
 
+def train(train_model, model_name='baseline', epochs=10, batch_size=64, validation_split=0.2):
+    # load training data
+    qa_data = QAData()
+    questions, good_answers, bad_answers = qa_data.get_training_data()
+
+    logger.info(f'Training: epochs {epochs}, batch_size {batch_size}, validation_split {validation_split}')
+    # train the model
+    Y = np.zeros(shape=(questions.shape[0],))
+    callback = train_model.fit(
+        [questions, good_answers, bad_answers],
+        Y,
+        epochs=epochs,
+        batch_size=batch_size,
+        validation_split=validation_split,
+        verbose=1
+    )
+
+    df = pd.DataFrame(callback.history)
+    df.insert(0, 'epochs', range(0, len(df)))
+    df = pd.melt(df, id_vars=['epochs'])
+    plot = ggplot(aes(x='epochs', y='value', color='variable'), data=df) + geom_line()
+    filename = f'{model_name}_plot.png'
+    logger.info(f'saving loss, val_loss plot: {filename}')
+    plot.save('baseline.png')
+
+    # save the trained model
+    train_model.save_weights(f'model/train_weights_{model_name}.h5', overwrite=True)
+    logger.info(f'model/train_weights_{model_name}.h5')
+    K.clear_session()
+
 
 def main(mode='train', question=None, answers=None, epochs=100, batch_size=64, validation_split=0.2):
     """
@@ -47,11 +77,9 @@ def main(mode='train', question=None, answers=None, epochs=100, batch_size=64, v
                            dec_timesteps = 30, hidden_dim = 50, kernel_size = 100, filters = [1]')
 
         train_model.summary()
-        train_model(train_model, epochs=epochs, batch_size=batch_size, validation_split=validation_split)
+        train(train_model, epochs=epochs, batch_size=batch_size, validation_split=validation_split)
 
         # small model
-
-
         enc_timesteps = 30
         dec_timesteps = 30
         hidden_dim = 10
@@ -70,7 +98,7 @@ def main(mode='train', question=None, answers=None, epochs=100, batch_size=64, v
                                    dec_timesteps = {dec_timesteps},'
                     f' hidden_dim = {hidden_dim}, kernel_size = {kernel_size}, '
                     f'filters = {filters}')
-        train_model(small_train_model, model_name='small', epochs=epochs,
+        train(small_train_model, model_name='small', epochs=epochs,
                     batch_size=batch_size, validation_split=validation_split)
 
 
@@ -94,7 +122,7 @@ def main(mode='train', question=None, answers=None, epochs=100, batch_size=64, v
                                            dec_timesteps = {dec_timesteps},'
                     f' hidden_dim = {hidden_dim}, kernel_size = {kernel_size}, '
                     f'filters = {filters}')
-        train_model(larger_train_model, model_name='larger', epochs=epochs,
+        train(larger_train_model, model_name='larger', epochs=epochs,
                     batch_size=batch_size, validation_split=validation_split)
 
     elif mode == 'predict':
@@ -166,32 +194,4 @@ if __name__ == "__main__":
 def test(question, answers):
     return main(mode='test', question=question, answers=answers)
 
-def train_model(train_model, model_name='baseline', epochs=10, batch_size=64, validation_split=0.2):
-    # load training data
-    qa_data = QAData()
-    questions, good_answers, bad_answers = qa_data.get_training_data()
 
-    logger.info(f'Training: epochs {epochs}, batch_size {batch_size}, validation_split {validation_split}')
-    # train the model
-    Y = np.zeros(shape=(questions.shape[0],))
-    callback = train_model.fit(
-        [questions, good_answers, bad_answers],
-        Y,
-        epochs=epochs,
-        batch_size=batch_size,
-        validation_split=validation_split,
-        verbose=1
-    )
-
-    df = pd.DataFrame(callback.history)
-    df.insert(0, 'epochs', range(0, len(df)))
-    df = pd.melt(df, id_vars=['epochs'])
-    plot = ggplot(aes(x='epochs', y='value', color='variable'), data=df) + geom_line()
-    filename = f'{model_name}_plot.png'
-    logger.info(f'saving loss, val_loss plot: {filename}')
-    plot.save('baseline.png')
-
-    # save the trained model
-    train_model.save_weights(f'model/train_weights_{model_name}.h5', overwrite=True)
-    logger.info(f'model/train_weights_{model_name}.h5')
-    K.clear_session()

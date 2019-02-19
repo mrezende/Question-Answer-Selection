@@ -131,6 +131,9 @@ class QAModel():
             question_cnn = concatenate([cnn(question_pool) for cnn in cnns])
         else:
             question_cnn = cnns[0](question_pool)
+        
+        
+            
 
         #answer_cnn = merge([cnn(answer_pool) for cnn in cnns], mode='concat')
         answer_cnn = None
@@ -138,6 +141,8 @@ class QAModel():
             answer_cnn = concatenate([cnn(answer_pool) for cnn in cnns])
         else:
             answer_cnn = cnns[0](answer_pool)
+        
+            
 
         # apply max pooling
         maxpool = Lambda(lambda x: K.max(x, axis=1, keepdims=False), output_shape=lambda x: (x[0], x[2]))
