@@ -10,6 +10,7 @@ import logging
 import os
 import sys
 import pandas as pd
+from ggplot import *
 
 
 def main(mode='train', question=None, answers=None, epochs=100, batch_size=64, validation_split=0.2):
@@ -64,7 +65,8 @@ def main(mode='train', question=None, answers=None, epochs=100, batch_size=64, v
             df.insert(0, 'epochs', range(0, len(df)))
             df = pd.melt(df, id_vars=['epochs'])
             plot = ggplot(aes(x = 'epochs', y='value', color='variable'), data=df)+geom_line()
-            logger.info(f'saving loss, val_loss plot: {'baseline.png'}')
+            filename = 'baseline.png'
+            logger.info(f'saving loss, val_loss plot: {filename}')
             plot.save('baseline.png')
 
             # save the trained model
