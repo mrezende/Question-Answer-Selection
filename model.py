@@ -12,7 +12,7 @@ class QAModel():
         return lambda x: dot(x[0], x[1]) / K.maximum(K.sqrt(dot(x[0], x[0]) * dot(x[1], x[1])), K.epsilon())
 
 
-    def get_bilstm_model(self, embedding_file, vocab_size):
+    def get_bilstm_model(self, embedding_file, vocab_size, enc_timesteps = 30, dec_timesteps = 30, hidden_dim = 5):
         """
         Return the bilstm training and prediction model
 
@@ -26,9 +26,7 @@ class QAModel():
         """
 
         margin = 0.05
-        enc_timesteps = 150
-        dec_timesteps = 150
-        hidden_dim = 128
+
 
         # initialize the question and answer shapes and datatype
         question = Input(shape=(enc_timesteps,), dtype='int32', name='question_base')
@@ -80,7 +78,8 @@ class QAModel():
         return training_model, prediction_model
 
 
-    def get_lstm_cnn_model(self,embedding_file,  vocab_size):
+    def get_lstm_cnn_model(self,embedding_file,  vocab_size, enc_timesteps = 30,
+                           dec_timesteps = 30, hidden_dim = 50, kernel_size = 100, filters = [1]):
         """
         Return the bilstm + cnn training and prediction model
 
@@ -94,9 +93,7 @@ class QAModel():
         """
 
         margin = 0.05
-        hidden_dim = 200
-        enc_timesteps = 150
-        dec_timesteps = 150
+
         weights = np.load(embedding_file)
 
         # initialize the question and answer shapes and datatype
@@ -126,7 +123,7 @@ class QAModel():
 
         # pass the embedding from bi-lstm through cnn
         #cnns = [Convolution1D(filter_length=filter_length,nb_filter=500,activation='tanh',border_mode='same') for filter_length in [1, 2, 3, 5]]
-        cnns = [Conv1D(filters=filter_length, kernel_size=500, activation='tanh', padding='same') for filter_length in [1, 2, 3, 5]]
+        cnns = [Conv1D(filters=filter_length, kernel_size=kernel_size, activation='tanh', padding='same') for filter_length in filters]
 
         #question_cnn = merge([cnn(question_pool) for cnn in cnns], mode='concat')
         question_cnn = concatenate([cnn(question_pool) for cnn in cnns])

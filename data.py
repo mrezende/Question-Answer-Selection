@@ -9,14 +9,14 @@ class QAData():
     Load the train/predecit/test data
     """
 
-    def __init__(self):
+    def __init__(self, dec_timestpes = 30, enc_timesteps = 30):
         self.samples = []
         with open('data/samples_for_tokenizer.json', 'r') as read_file:
             self.samples = json.load(read_file)
         self.tokenizer = Tokenizer()
         self.tokenizer.fit_on_texts(self.samples)
-        self.dec_timesteps=150
-        self.enc_timesteps=150
+        self.dec_timesteps = dec_timestpes
+        self.enc_timesteps = enc_timesteps
 
         self.training_set = []
         with open('data/train.json', 'r') as read_file:
