@@ -126,9 +126,18 @@ class QAModel():
         cnns = [Conv1D(filters=filter_length, kernel_size=kernel_size, activation='tanh', padding='same') for filter_length in filters]
 
         #question_cnn = merge([cnn(question_pool) for cnn in cnns], mode='concat')
-        question_cnn = concatenate([cnn(question_pool) for cnn in cnns])
+        question_cnn = None
+        if len(cnns) > 1:
+            question_cnn = concatenate([cnn(question_pool) for cnn in cnns])
+        else:
+            question_cnn = cnns[0](question_pool)
+
         #answer_cnn = merge([cnn(answer_pool) for cnn in cnns], mode='concat')
-        answer_cnn = concatenate([cnn(answer_pool) for cnn in cnns])
+        answer_cnn = None
+        if len(cnns) > 1:
+            answer_cnn = concatenate([cnn(answer_pool) for cnn in cnns])
+        else:
+            answer_cnn = cnns[0](answer_pool)
 
         # apply max pooling
         maxpool = Lambda(lambda x: K.max(x, axis=1, keepdims=False), output_shape=lambda x: (x[0], x[2]))
