@@ -69,13 +69,12 @@ class QAModel():
         loss = Lambda(function=lambda x: K.relu(margin - x[0] + x[1]), output_shape=lambda x: x[0])(
             good_bad_concatenated)
 
-        # return training and prediction model
-        training_model = Model(inputs=[question, answer_good, answer_bad], outputs=loss, name='training_model')
-        training_model.compile(loss=lambda y_true, y_pred: y_pred, optimizer="rmsprop")
-        prediction_model = Model(inputs=[question, answer_good], outputs=good_similarity, name='prediction_model')
-        prediction_model.compile(loss=lambda y_true, y_pred: y_pred, optimizer="rmsprop")
+        # return model
+        model = Model(inputs=[question, answer_good, answer_bad], outputs=loss, name='training_model')
+        model.compile(loss=lambda y_true, y_pred: y_pred, optimizer="rmsprop")
 
-        return training_model, prediction_model
+
+        return model
 
 
     def get_lstm_cnn_model(self,embedding_file,  vocab_size, enc_timesteps = 30,
@@ -171,10 +170,7 @@ class QAModel():
         loss = Lambda(function=lambda x: K.relu(margin - x[0] + x[1]), output_shape=lambda x: x[0])(
             [good_similarity, bad_similarity])
 
-        # return the training and prediction model
-        prediction_model = Model(inputs=[question, answer_good], outputs=good_similarity, name='prediction_model')
-        prediction_model.compile(loss=lambda y_true, y_pred: y_pred, optimizer="rmsprop")
-        training_model = Model(inputs=[question, answer_good, answer_bad], outputs=loss, name='training_model')
-        training_model.compile(loss=lambda y_true, y_pred: y_pred, optimizer="rmsprop")
+        model = Model(inputs=[question, answer_good, answer_bad], outputs=loss, name='model')
+        model.compile(loss=lambda y_true, y_pred: y_pred, optimizer="rmsprop")
 
-        return training_model, prediction_model
+        return model

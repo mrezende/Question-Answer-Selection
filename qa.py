@@ -13,6 +13,7 @@ import pandas as pd
 from ggplot import *
 from keras import backend as K
 from keras.callbacks import EarlyStopping
+from keras.models import model_from_json
 
 def train(train_model, model_name='baseline', epochs=10, batch_size=64, validation_split=0.2):
     # load training data
@@ -43,13 +44,19 @@ def train(train_model, model_name='baseline', epochs=10, batch_size=64, validati
     logger.info(f'saving loss, val_loss plot: {filename}')
     plot.save(filename)
 
-    # save the trained model
+    # save the model's architecture
+    json_string = train_model.to_json()
+
+    with open(f'model/model_architecture_{model_name}.json', 'w') as write_file:
+        write_file.write(json_string)
+
+    # save the trained model weights
     train_model.save_weights(f'model/train_weights_{model_name}.h5', overwrite=True)
     logger.info(f'model/train_weights_{model_name}.h5')
     K.clear_session()
 
 
-def main(mode='train', question=None, answers=None, epochs=100, batch_size=64, validation_split=0.2):
+def main(mode='train', question=None, answers=None, epochs=100, batch_size=64, validation_split=0.2, model_name = 'baseline'):
     """
     This function is used to train, predict or test
 
@@ -74,7 +81,7 @@ def main(mode='train', question=None, answers=None, epochs=100, batch_size=64, v
     embedding_file = "./data/word2vec_100_dim.embeddings"
 
     qa_model = QAModel()
-    train_model, predict_model = qa_model.get_lstm_cnn_model(embedding_file, len(tokenizer.word_index) + 1)
+    train_model = qa_model.get_lstm_cnn_model(embedding_file, len(tokenizer.word_index) + 1)
 
     if mode == 'train':
         logger.info('Default training: Baseline')
@@ -135,17 +142,23 @@ def main(mode='train', question=None, answers=None, epochs=100, batch_size=64, v
         data = []
         with open('data/test.json') as read_file:
             data = json.load(read_file)
-
         random.shuffle(data)
 
-        # load weights from trained model
         qa_data = QAData()
-        predict_model.load_weights('model/train_weights_small.h5')
+
+        # create model from json model's architecture saved
+        json_string = ''
+        with open(f'model/model_architecture_{model_name}.json', 'r') as read_file:
+            json_string = read_file.read()
+        predict_model = model_from_json(json_string)
+
+        # load weights
+        predict_model.load_weights(f'model/train_weights_{model_name}.h5')
 
         c = 0
         c1 = 0
         for i, d in enumerate(data):
-            print (i, len(data))
+            print(i, len(data))
 
             # pad the data and get it in desired format
             answers, question = qa_data.process_data(d)
@@ -169,8 +182,14 @@ def main(mode='train', question=None, answers=None, epochs=100, batch_size=64, v
         qa_data = QAData()
         answers, question = qa_data.process_test_data(question, answers)
 
-        # load weights from the trained model
-        predict_model.load_weights('model/predict_weights_epoch_10.h5')
+        # create model from json model's architecture saved
+        json_string = ''
+        with open(f'model/model_architecture_{model_name}.json', 'r') as read_file:
+            json_string = read_file.read()
+        predict_model = model_from_json(json_string)
+
+        # load weights
+        predict_model.load_weights(f'model/train_weights_{model_name}.h5')
 
         # get similarity score
         sims = predict_model.predict([question, answers])
@@ -185,6 +204,8 @@ if __name__ == "__main__":
     parser.add_argument('--batch_size', metavar='BATCH SIZE', type=int, default=64, help='batch size for train')
     parser.add_argument('--validation_split', metavar='VALIDATION SPLIT', type=float, default=0.2,
                         help='validation split: 0.1 for an example')
+    parser.add_argument('--model_name', metavar='MODEL NAME', type=str, default="baseline",
+                        help='model name: baseline, small, larger etc.')
 
     args = parser.parse_args()
 
@@ -194,7 +215,8 @@ if __name__ == "__main__":
     logging.root.setLevel(level=logging.INFO)
     logger.info('running %s' % ' '.join(sys.argv))
 
-    main(mode=args.mode, epochs=args.epochs, batch_size=args.batch_size, validation_split=args.validation_split)
+    main(mode=args.mode, epochs=args.epochs, batch_size=args.batch_size,
+         validation_split=args.validation_split, model_name=args.model_name)
 
 def test(question, answers):
     return main(mode='test', question=question, answers=answers)
