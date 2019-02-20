@@ -49,10 +49,11 @@ def train(train_model, model_name='baseline', epochs=10, batch_size=64, validati
 
     with open(f'model/model_architecture_{model_name}.json', 'w') as write_file:
         write_file.write(json_string)
+    logger.info(f'Models architecture saved: model/model_architecture_{model_name}.json')
 
     # save the trained model weights
     train_model.save_weights(f'model/train_weights_{model_name}.h5', overwrite=True)
-    logger.info(f'model/train_weights_{model_name}.h5')
+    logger.info(f'Model weights saved: model/train_weights_{model_name}.h5')
     K.clear_session()
 
 
@@ -147,12 +148,14 @@ def main(mode='train', question=None, answers=None, epochs=100, batch_size=64, v
         qa_data = QAData()
 
         # create model from json model's architecture saved
+        logger.info(f'Loading models architecture: model/model_architecture_{model_name}.json')
         json_string = ''
         with open(f'model/model_architecture_{model_name}.json', 'r') as read_file:
             json_string = read_file.read()
         predict_model = model_from_json(json_string)
 
         # load weights
+        logger.info(f'Loading model weigths: model/train_weights_{model_name}.h5')
         predict_model.load_weights(f'model/train_weights_{model_name}.h5')
 
         c = 0
@@ -183,12 +186,14 @@ def main(mode='train', question=None, answers=None, epochs=100, batch_size=64, v
         answers, question = qa_data.process_test_data(question, answers)
 
         # create model from json model's architecture saved
+        logger.info(f'Loading models architecture: model/model_architecture_{model_name}.json')
         json_string = ''
         with open(f'model/model_architecture_{model_name}.json', 'r') as read_file:
             json_string = read_file.read()
         predict_model = model_from_json(json_string)
 
         # load weights
+        logger.info(f'Loading model weigths: model/train_weights_{model_name}.h5')
         predict_model.load_weights(f'model/train_weights_{model_name}.h5')
 
         # get similarity score
