@@ -21,7 +21,6 @@ def train(train_model, model_name='baseline', epochs=10, batch_size=64, validati
     # load training data
     qa_data = QAData()
     questions, good_answers, bad_answers = qa_data.get_training_data()
-
     logger.info(f'Training: epochs {epochs}, batch_size {batch_size}, validation_split {validation_split}')
     # train the model
     Y = np.zeros(shape=(questions.shape[0],))
@@ -37,21 +36,22 @@ def train(train_model, model_name='baseline', epochs=10, batch_size=64, validati
     )
 
     # save plot val_loss, loss 
+    if epochs != 0:
+        df = pd.DataFrame(hist.history)
+        df.insert(0, 'epochs', range(0, len(df)))
+        df = pd.melt(df, id_vars=['epochs'])
+        plot = ggplot(aes(x='epochs', y='value', color='variable'), data=df) + geom_line()
+        filename = f'{model_name}_plot.png'
+        logger.info(f'saving loss, val_loss plot: {filename}')
+        plot.save(filename)
 
-    df = pd.DataFrame(hist.history)
-    df.insert(0, 'epochs', range(0, len(df)))
-    df = pd.melt(df, id_vars=['epochs'])
-    plot = ggplot(aes(x='epochs', y='value', color='variable'), data=df) + geom_line()
-    filename = f'{model_name}_plot.png'
-    logger.info(f'saving loss, val_loss plot: {filename}')
-    plot.save(filename)
 
 
+        # save the trained model weights
+        train_model.save_weights(f'model/train_weights_{model_name}.h5', overwrite=True)
+        logger.info(f'Model weights saved: model/train_weights_{model_name}.h5')
 
-    # save the trained model weights
-    train_model.save_weights(f'model/train_weights_{model_name}.h5', overwrite=True)
-    logger.info(f'Model weights saved: model/train_weights_{model_name}.h5')
-    K.clear_session()
+        K.clear_session()
 
 def get_default_inputs_for_model():
     samples = []
