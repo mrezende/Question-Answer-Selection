@@ -100,7 +100,7 @@ def main(mode='train', question=None, answers=None, epochs=100, batch_size=64, v
         hidden_dim = 10
         kernel_size = 20
         filters = [1]
-        small_train_model, small_predict_model = qa_model.get_lstm_cnn_model(embedding_file,
+        small_train_model = qa_model.get_lstm_cnn_model(embedding_file,
                                                                              len(tokenizer.word_index) + 1,
                                                                              enc_timesteps=enc_timesteps,
                                                                              dec_timesteps=dec_timesteps,
@@ -124,7 +124,7 @@ def main(mode='train', question=None, answers=None, epochs=100, batch_size=64, v
         hidden_dim = 200
         kernel_size = 500
         filters = [1]
-        larger_train_model, larger_predict_model = qa_model.get_lstm_cnn_model(embedding_file,
+        larger_train_model = qa_model.get_lstm_cnn_model(embedding_file,
                                                                              len(tokenizer.word_index) + 1,
                                                                              enc_timesteps=enc_timesteps,
                                                                              dec_timesteps=dec_timesteps,
