@@ -17,7 +17,24 @@ from keras import backend as K
 from keras.callbacks import EarlyStopping
 from keras.models import model_from_json
 
-def train(train_model, model_name='baseline', epochs=10, batch_size=64, validation_split=0.2):
+def clear_session():
+    K.clear_session()
+
+def save_model_architecture(model, model_name = 'baseline')
+    # save the model's architecture
+    json_string = model.to_json()
+
+    with open(f'model/model_architecture_{model_name}.json', 'w') as write_file:
+        write_file.write(json_string)
+    logger.info(f'Models architecture saved: model/model_architecture_{model_name}.json')
+
+def save_model_weights(model, model_name='baseline'):
+
+    # save the trained model weights
+    model.save_weights(f'model/train_weights_{model_name}.h5', overwrite=True)
+    logger.info(f'Model weights saved: model/train_weights_{model_name}.h5')
+
+def train(train_model, prediction_model, model_name='baseline', epochs=10, batch_size=64, validation_split=0.2):
     # load training data
     qa_data = QAData()
     questions, good_answers, bad_answers = qa_data.get_training_data()
@@ -36,22 +53,19 @@ def train(train_model, model_name='baseline', epochs=10, batch_size=64, validati
     )
 
     # save plot val_loss, loss 
-    if epochs != 0:
-        df = pd.DataFrame(hist.history)
-        df.insert(0, 'epochs', range(0, len(df)))
-        df = pd.melt(df, id_vars=['epochs'])
-        plot = ggplot(aes(x='epochs', y='value', color='variable'), data=df) + geom_line()
-        filename = f'{model_name}_plot.png'
-        logger.info(f'saving loss, val_loss plot: {filename}')
-        plot.save(filename)
 
+    df = pd.DataFrame(hist.history)
+    df.insert(0, 'epochs', range(0, len(df)))
+    df = pd.melt(df, id_vars=['epochs'])
+    plot = ggplot(aes(x='epochs', y='value', color='variable'), data=df) + geom_line()
+    filename = f'{model_name}_plot.png'
+    logger.info(f'saving loss, val_loss plot: {filename}')
+    plot.save(filename)
 
+    save_model_architecture(prediction_model, model_name=model_name)
+    save_model_weights(train_model, model_name=model_name)
 
-        # save the trained model weights
-        train_model.save_weights(f'model/train_weights_{model_name}.h5', overwrite=True)
-        logger.info(f'Model weights saved: model/train_weights_{model_name}.h5')
-
-        K.clear_session()
+    clear_session()
 
 def get_default_inputs_for_model():
     samples = []
@@ -70,11 +84,11 @@ def get_baseline_model():
     embedding_file, vocab_size = get_default_inputs_for_model()
 
     qa_model = QAModel()
-    train_model = qa_model.get_lstm_cnn_model(embedding_file, vocab_size)
+    train_model, prediction_model = qa_model.get_lstm_cnn_model(embedding_file, vocab_size)
     logger.info('Default created: Baseline')
     logger.info('enc_timesteps = 30,\
                                dec_timesteps = 30, hidden_dim = 50, kernel_size = 100, filters = [1]')
-    return train_model
+    return train_model, prediction_model
 
 def get_small_model():
     # small model
@@ -85,7 +99,7 @@ def get_small_model():
     kernel_size = 20
     filters = [1]
     qa_model = QAModel()
-    small_train_model = qa_model.get_lstm_cnn_model(embedding_file,
+    small_train_model, small_prediction_model = qa_model.get_lstm_cnn_model(embedding_file,
                                                     vocab_size,
                                                     enc_timesteps=enc_timesteps,
                                                     dec_timesteps=dec_timesteps,
@@ -97,7 +111,7 @@ def get_small_model():
                                        dec_timesteps = {dec_timesteps},'
                 f' hidden_dim = {hidden_dim}, kernel_size = {kernel_size}, '
                 f'filters = {filters}')
-    return small_train_model
+    return small_train_model, small_prediction_model
 
 
 def get_larger_model():
@@ -109,7 +123,7 @@ def get_larger_model():
     embedding_file, vocab_size = get_default_inputs_for_model()
 
     qa_model = QAModel()
-    larger_train_model = qa_model.get_lstm_cnn_model(embedding_file,
+    larger_train_model, larger_prediction_model = qa_model.get_lstm_cnn_model(embedding_file,
                                                      vocab_size,
                                                      enc_timesteps=enc_timesteps,
                                                      dec_timesteps=dec_timesteps,
@@ -121,7 +135,7 @@ def get_larger_model():
                                                dec_timesteps = {dec_timesteps},'
                 f' hidden_dim = {hidden_dim}, kernel_size = {kernel_size}, '
                 f'filters = {filters}')
-    return larger_train_model
+    return larger_train_model, larger_prediction_model
 
 
 def main(mode='train', question=None, answers=None, epochs=100, batch_size=64, validation_split=0.2, model_name = 'baseline'):
@@ -144,23 +158,27 @@ def main(mode='train', question=None, answers=None, epochs=100, batch_size=64, v
 
     if mode == 'train':
 
-        train_model = get_baseline_model()
-        train_model.summary()
-        train(train_model, epochs=epochs, batch_size=batch_size, validation_split=validation_split)
+        # baseline model
 
-        small_train_model = get_small_model()
+        train_model, prediction_model = get_baseline_model()
+        train_model.summary()
+        train(train_model, prediction_model, epochs=epochs, batch_size=batch_size, validation_split=validation_split)
+
+        # small model
+
+        small_train_model, small_prediction_model = get_small_model()
         small_train_model.summary()
 
-        train(small_train_model, model_name='small', epochs=epochs,
-                    batch_size=batch_size, validation_split=validation_split)
 
+        train(small_train_model, small_prediction_model, model_name='small', epochs=epochs,
+                    batch_size=batch_size, validation_split=validation_split)
 
         # larger model
 
-        larger_train_model = get_larger_model()
+        larger_train_model, larger_prediction_model = get_larger_model()
         larger_train_model.summary()
 
-        train(larger_train_model, model_name='larger', epochs=epochs,
+        train(larger_train_model, larger_prediction_model, model_name='larger', epochs=epochs,
                     batch_size=batch_size, validation_split=validation_split)
 
     elif mode == 'predict':
@@ -171,15 +189,13 @@ def main(mode='train', question=None, answers=None, epochs=100, batch_size=64, v
         random.shuffle(data)
 
         qa_data = QAData()
-        predict_model = None
-        if model_name == 'small':
-            predict_model = get_small_model()
-        elif model_name == 'larger':
-            predict_model = get_larger_model()
-        else:
-            predict_model = get_baseline_model()
 
-        train(predict_model, epochs=0)
+        # create model from json model's architecture saved
+        logger.info(f'Loading models architecture: model/model_architecture_{model_name}.json')
+
+        with open(f'model/model_architecture_{model_name}.json', 'r') as read_file:
+            json_string = read_file.read()
+        predict_model = model_from_json(json_string)
 
         # load weights
         logger.info(f'Loading model weigths: model/train_weights_{model_name}.h5')
