@@ -54,8 +54,8 @@ def train(train_model, model_name='baseline', epochs=10, batch_size=64, validati
     logger.info(f'Models architecture saved: model/model_architecture_{model_name}.json')
 
     # save the trained model weights
-    train_model.save_weights(f'model/train_weights_{model_name}.h5', overwrite=True)
-    logger.info(f'Model weights saved: model/train_weights_{model_name}.h5')
+    train_model.save_weights(f'model/train_weights_{model_name}.tf', overwrite=True)
+    logger.info(f'Model weights saved: model/train_weights_{model_name}.tf')
     K.clear_session()
 
 
@@ -157,8 +157,8 @@ def main(mode='train', question=None, answers=None, epochs=100, batch_size=64, v
         predict_model = model_from_json(json_string)
 
         # load weights
-        logger.info(f'Loading model weigths: model/train_weights_{model_name}.h5')
-        predict_model.load_weights(f'model/train_weights_{model_name}.h5')
+        logger.info(f'Loading model weigths: model/train_weights_{model_name}.tf')
+        predict_model.load_weights(f'model/train_weights_{model_name}.tf')
 
         c = 0
         c1 = 0
@@ -195,8 +195,8 @@ def main(mode='train', question=None, answers=None, epochs=100, batch_size=64, v
         predict_model = model_from_json(json_string)
 
         # load weights
-        logger.info(f'Loading model weigths: model/train_weights_{model_name}.h5')
-        predict_model.load_weights(f'model/train_weights_{model_name}.h5')
+        logger.info(f'Loading model weigths: model/train_weights_{model_name}.tf')
+        predict_model.load_weights(f'model/train_weights_{model_name}.tf')
 
         # get similarity score
         sims = predict_model.predict([question, answers])
