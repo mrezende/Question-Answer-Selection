@@ -46,17 +46,82 @@ def train(train_model, model_name='baseline', epochs=10, batch_size=64, validati
     logger.info(f'saving loss, val_loss plot: {filename}')
     plot.save(filename)
 
-    # save the model's architecture
-    json_string = train_model.to_json()
 
-    with open(f'model/model_architecture_{model_name}.json', 'w') as write_file:
-        write_file.write(json_string)
-    logger.info(f'Models architecture saved: model/model_architecture_{model_name}.json')
 
     # save the trained model weights
-    train_model.save_weights(f'model/train_weights_{model_name}.tf', save_format='tf', overwrite=True)
-    logger.info(f'Model weights saved: model/train_weights_{model_name}.tf')
+    train_model.save_weights(f'model/train_weights_{model_name}.h5', overwrite=True)
+    logger.info(f'Model weights saved: model/train_weights_{model_name}.h5')
     K.clear_session()
+
+def get_default_inputs_for_model():
+    samples = []
+    with open('data/samples_for_tokenizer.json', 'r') as read_file:
+        samples = json.load(read_file)
+    tokenizer = Tokenizer()
+    tokenizer.fit_on_texts(samples)
+    vocab_size = len(tokenizer.word_index) + 1
+
+    embedding_file = "./data/word2vec_100_dim.embeddings"
+    return embedding_file, vocab_size
+
+def get_baseline_model():
+    # get the train and predict model model
+
+    embedding_file, vocab_size = get_default_inputs_for_model()
+
+    qa_model = QAModel()
+    train_model = qa_model.get_lstm_cnn_model(embedding_file, vocab_size)
+    logger.info('Default created: Baseline')
+    logger.info('enc_timesteps = 30,\
+                               dec_timesteps = 30, hidden_dim = 50, kernel_size = 100, filters = [1]')
+    return train_model
+
+def get_small_model():
+    # small model
+    embedding_file, vocab_size = get_default_inputs_for_model()
+    enc_timesteps = 30
+    dec_timesteps = 30
+    hidden_dim = 10
+    kernel_size = 20
+    filters = [1]
+    qa_model = QAModel()
+    small_train_model = qa_model.get_lstm_cnn_model(embedding_file,
+                                                    vocab_size,
+                                                    enc_timesteps=enc_timesteps,
+                                                    dec_timesteps=dec_timesteps,
+                                                    kernel_size=kernel_size,
+                                                    hidden_dim=hidden_dim,
+                                                    filters=filters)
+    logger.info('Model created: Small')
+    logger.info(f'enc_timesteps = {enc_timesteps},\
+                                       dec_timesteps = {dec_timesteps},'
+                f' hidden_dim = {hidden_dim}, kernel_size = {kernel_size}, '
+                f'filters = {filters}')
+    return small_train_model
+
+
+def get_larger_model():
+    enc_timesteps = 30
+    dec_timesteps = 30
+    hidden_dim = 200
+    kernel_size = 500
+    filters = [1]
+    embedding_file, vocab_size = get_default_inputs_for_model()
+
+    qa_model = QAModel()
+    larger_train_model = qa_model.get_lstm_cnn_model(embedding_file,
+                                                     vocab_size,
+                                                     enc_timesteps=enc_timesteps,
+                                                     dec_timesteps=dec_timesteps,
+                                                     kernel_size=kernel_size,
+                                                     hidden_dim=hidden_dim,
+                                                     filters=filters)
+    logger.info('Model created: Larger')
+    logger.info(f'enc_timesteps = {enc_timesteps},\
+                                               dec_timesteps = {dec_timesteps},'
+                f' hidden_dim = {hidden_dim}, kernel_size = {kernel_size}, '
+                f'filters = {filters}')
+    return larger_train_model
 
 
 def main(mode='train', question=None, answers=None, epochs=100, batch_size=64, validation_split=0.2, model_name = 'baseline'):
@@ -75,68 +140,26 @@ def main(mode='train', question=None, answers=None, epochs=100, batch_size=64, v
     # get the train and predict model model
 
 
-    samples = []
-    with open('data/samples_for_tokenizer.json', 'r') as read_file:
-        samples = json.load(read_file)
-    tokenizer = Tokenizer()
-    tokenizer.fit_on_texts(samples)
 
-    embedding_file = "./data/word2vec_100_dim.embeddings"
-
-    qa_model = QAModel()
-    train_model = qa_model.get_lstm_cnn_model(embedding_file, len(tokenizer.word_index) + 1)
 
     if mode == 'train':
-        logger.info('Default training: Baseline')
-        logger.info('enc_timesteps = 30,\
-                           dec_timesteps = 30, hidden_dim = 50, kernel_size = 100, filters = [1]')
 
+        train_model = get_baseline_model()
         train_model.summary()
         train(train_model, epochs=epochs, batch_size=batch_size, validation_split=validation_split)
 
-        # small model
-        enc_timesteps = 30
-        dec_timesteps = 30
-        hidden_dim = 10
-        kernel_size = 20
-        filters = [1]
-        small_train_model = qa_model.get_lstm_cnn_model(embedding_file,
-                                                                             len(tokenizer.word_index) + 1,
-                                                                             enc_timesteps=enc_timesteps,
-                                                                             dec_timesteps=dec_timesteps,
-                                                                             kernel_size=kernel_size,
-                                                                             hidden_dim=hidden_dim,
-                                                                             filters=filters)
+        small_train_model = get_small_model()
         small_train_model.summary()
-        logger.info('Model training: Small')
-        logger.info(f'enc_timesteps = {enc_timesteps},\
-                                   dec_timesteps = {dec_timesteps},'
-                    f' hidden_dim = {hidden_dim}, kernel_size = {kernel_size}, '
-                    f'filters = {filters}')
+
         train(small_train_model, model_name='small', epochs=epochs,
                     batch_size=batch_size, validation_split=validation_split)
 
 
         # larger model
 
-        enc_timesteps = 30
-        dec_timesteps = 30
-        hidden_dim = 200
-        kernel_size = 500
-        filters = [1]
-        larger_train_model = qa_model.get_lstm_cnn_model(embedding_file,
-                                                                             len(tokenizer.word_index) + 1,
-                                                                             enc_timesteps=enc_timesteps,
-                                                                             dec_timesteps=dec_timesteps,
-                                                                             kernel_size=kernel_size,
-                                                                             hidden_dim=hidden_dim,
-                                                                             filters=filters)
+        larger_train_model = get_larger_model()
         larger_train_model.summary()
-        logger.info('Model training: Larger')
-        logger.info(f'enc_timesteps = {enc_timesteps},\
-                                           dec_timesteps = {dec_timesteps},'
-                    f' hidden_dim = {hidden_dim}, kernel_size = {kernel_size}, '
-                    f'filters = {filters}')
+
         train(larger_train_model, model_name='larger', epochs=epochs,
                     batch_size=batch_size, validation_split=validation_split)
 
@@ -148,18 +171,17 @@ def main(mode='train', question=None, answers=None, epochs=100, batch_size=64, v
         random.shuffle(data)
 
         qa_data = QAData()
-
-        # create model from json model's architecture saved
-        logger.info(f'Loading models architecture: model/model_architecture_{model_name}.json')
-        json_string = ''
-        with open(f'model/model_architecture_{model_name}.json', 'r') as read_file:
-            json_string = read_file.read()
-        predict_model = model_from_json(json_string)
-        predict_model.compile(loss=lambda y_true, y_pred: y_pred, optimizer="rmsprop")
+        predict_model = None
+        if model_name == 'small':
+            predict_model = get_small_model()
+        elif model_name == 'larger':
+            predict_model = get_larger_model()
+        else:
+            predict_model = get_baseline_model()
 
         # load weights
-        logger.info(f'Loading model weigths: model/train_weights_{model_name}.tf')
-        predict_model.load_weights(f'model/train_weights_{model_name}.tf')
+        logger.info(f'Loading model weigths: model/train_weights_{model_name}.h5')
+        predict_model.load_weights(f'model/train_weights_{model_name}.h5')
 
         c = 0
         c1 = 0
@@ -196,8 +218,8 @@ def main(mode='train', question=None, answers=None, epochs=100, batch_size=64, v
         predict_model = model_from_json(json_string)
 
         # load weights
-        logger.info(f'Loading model weigths: model/train_weights_{model_name}.tf')
-        predict_model.load_weights(f'model/train_weights_{model_name}.tf')
+        logger.info(f'Loading model weigths: model/train_weights_{model_name}.h5')
+        predict_model.load_weights(f'model/train_weights_{model_name}.h5')
 
         # get similarity score
         sims = predict_model.predict([question, answers])
