@@ -1,6 +1,6 @@
 from keras import backend as K
 from keras.layers import Embedding
-from keras.layers import LSTM, Input, concatenate, Lambda
+from keras.layers import LSTM, Input, concatenate, Lambda, Dot
 from keras.layers.wrappers import Bidirectional
 from keras.layers import Conv1D
 from keras.models import Model
@@ -50,9 +50,10 @@ class QAModel():
         similarity = self.get_cosine_similarity()
 
         #question_answer_merged = merge(inputs=[question_enc_1, answer_enc_1], mode=similarity, output_shape=lambda _: (None, 1))
-        question_answer_concatenated = concatenate([question_enc_1, answer_enc_1])
-        question_answer_merged = Lambda(function=similarity, output_shape=lambda _: (None, 1))(
-            question_answer_concatenated)
+        question_answer_merged = Dot([question_enc_1, answer_enc_1], normalize=True)
+        #question_answer_concatenated = concatenate([question_enc_1, answer_enc_1])
+        #question_answer_merged = Lambda(function=similarity, output_shape=lambda _: (None, 1))(
+        #    question_answer_concatenated)
 
         lstm_model = Model(name="bi_lstm", inputs=[question, answer], outputs=question_answer_merged)
         good_similarity = lstm_model([question, answer_good])
@@ -153,7 +154,8 @@ class QAModel():
         similarity = self.get_cosine_similarity()
         #merged_model = merge([question_pool, answer_pool],mode=similarity, output_shape=lambda _: (None, 1))
         #question_answer_concatenated = concatenate([question_pool, answer_pool])
-        merged_model = Lambda(function=similarity, output_shape=lambda _: (None, 1))([question_pool, answer_pool])
+        merged_model = Dot([question_pool, answer_pool], normalize=True)
+        #merged_model = Lambda(function=similarity, output_shape=lambda _: (None, 1))([question_pool, answer_pool])
 
         lstm_convolution_model = Model(inputs=[question, answer], outputs=merged_model, name='lstm_convolution_model')
         good_similarity = lstm_convolution_model([question, answer_good])
