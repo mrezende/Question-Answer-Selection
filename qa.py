@@ -54,7 +54,7 @@ def train(train_model, model_name='baseline', epochs=10, batch_size=64, validati
     logger.info(f'Models architecture saved: model/model_architecture_{model_name}.json')
 
     # save the trained model weights
-    train_model.save_weights(f'model/train_weights_{model_name}.tf', overwrite=True)
+    train_model.save_weights(f'model/train_weights_{model_name}.tf', save_format='tf', overwrite=True)
     logger.info(f'Model weights saved: model/train_weights_{model_name}.tf')
     K.clear_session()
 
