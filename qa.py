@@ -179,6 +179,8 @@ def main(mode='train', question=None, answers=None, epochs=100, batch_size=64, v
         else:
             predict_model = get_baseline_model()
 
+        train(predict_model, epochs=0)
+
         # load weights
         logger.info(f'Loading model weigths: model/train_weights_{model_name}.h5')
         predict_model.load_weights(f'model/train_weights_{model_name}.h5')
