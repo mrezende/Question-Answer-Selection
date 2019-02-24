@@ -20,7 +20,7 @@ from keras.models import model_from_json
 def clear_session():
     K.clear_session()
 
-def save_model_architecture(model, model_name = 'baseline')
+def save_model_architecture(model, model_name = 'baseline'):
     # save the model's architecture
     json_string = model.to_json()
 
