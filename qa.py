@@ -155,6 +155,7 @@ def main(mode='train', question=None, answers=None, epochs=100, batch_size=64, v
         with open(f'model/model_architecture_{model_name}.json', 'r') as read_file:
             json_string = read_file.read()
         predict_model = model_from_json(json_string)
+        predict_model.compile(loss=lambda y_true, y_pred: y_pred, optimizer="rmsprop")
 
         # load weights
         logger.info(f'Loading model weigths: model/train_weights_{model_name}.tf')
