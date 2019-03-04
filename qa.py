@@ -62,7 +62,7 @@ def train(train_model, prediction_model, model_name='baseline', epochs=10, batch
     logger.info(f'saving loss, val_loss plot: {filename}')
     plot.save(filename)
 
-    save_model_architecture(prediction_model, model_name=model_name)
+    #save_model_architecture(prediction_model, model_name=model_name)
     save_model_weights(train_model, model_name=model_name)
 
     clear_session()
