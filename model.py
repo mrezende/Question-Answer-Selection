@@ -80,7 +80,7 @@ class QAModel():
 
 
     def get_lstm_cnn_model(self,embedding_file,  vocab_size, enc_timesteps = 30,
-                           dec_timesteps = 30, hidden_dim = 50, kernel_size = 100, filters = [1]):
+                           dec_timesteps = 30, hidden_dim = 50, kernel_size = 100, filters = [2, 3, 5, 7]):
         """
         Return the bilstm + cnn training and prediction model
 

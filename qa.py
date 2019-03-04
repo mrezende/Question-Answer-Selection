@@ -97,15 +97,13 @@ def get_small_model():
     dec_timesteps = 30
     hidden_dim = 10
     kernel_size = 20
-    filters = [1]
     qa_model = QAModel()
     small_train_model, small_prediction_model = qa_model.get_lstm_cnn_model(embedding_file,
                                                     vocab_size,
                                                     enc_timesteps=enc_timesteps,
                                                     dec_timesteps=dec_timesteps,
                                                     kernel_size=kernel_size,
-                                                    hidden_dim=hidden_dim,
-                                                    filters=filters)
+                                                    hidden_dim=hidden_dim)
     logger.info('Model created: Small')
     logger.info(f'enc_timesteps = {enc_timesteps},\
                                        dec_timesteps = {dec_timesteps},'
@@ -119,7 +117,7 @@ def get_larger_model():
     dec_timesteps = 30
     hidden_dim = 200
     kernel_size = 500
-    filters = [1]
+
     embedding_file, vocab_size = get_default_inputs_for_model()
 
     qa_model = QAModel()
@@ -128,8 +126,7 @@ def get_larger_model():
                                                      enc_timesteps=enc_timesteps,
                                                      dec_timesteps=dec_timesteps,
                                                      kernel_size=kernel_size,
-                                                     hidden_dim=hidden_dim,
-                                                     filters=filters)
+                                                     hidden_dim=hidden_dim)
     logger.info('Model created: Larger')
     logger.info(f'enc_timesteps = {enc_timesteps},\
                                                dec_timesteps = {dec_timesteps},'
@@ -200,11 +197,11 @@ def main(mode='train', question=None, answers=None, epochs=100, batch_size=64, v
 
         predict_model = None
         if model_name == 'small':
-            x, predict_model = get_small_model()
+            _, predict_model = get_small_model()
         elif model_name == 'larger':
-            x, predict_model = get_larger_model()
+            _, predict_model = get_larger_model()
         else:
-            x, predict_model = get_baseline_model()
+            _, predict_model = get_baseline_model()
 
         # load weights
         logger.info(f'Loading model weigths: model/train_weights_{model_name}.h5')
