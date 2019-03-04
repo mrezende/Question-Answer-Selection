@@ -35,7 +35,7 @@ class QAModel():
         answer_bad = Input(shape=(dec_timesteps,), dtype='int32', name='answer_bad_base')
 
         weights = np.load(embedding_file)
-        qa_embedding = Embedding(input_dim=vocab_size, output_dim=weights.shape[1], mask_zero=True, weights=[weights], trainable=False)
+        qa_embedding = Embedding(input_dim=vocab_size, output_dim=weights.shape[1], mask_zero=True, weights=[weights])
         bi_lstm = Bidirectional(LSTM(activation='tanh', dropout=0.2, units=hidden_dim, return_sequences=False))
 
         # embed the question and pass it through bilstm
@@ -104,7 +104,7 @@ class QAModel():
         answer_bad = Input(shape=(dec_timesteps,), dtype='int32', name='answer_bad_base')
 
         # embed the question and answers
-        qa_embedding = Embedding(input_dim=vocab_size, output_dim=weights.shape[1], weights=[weights], trainable=False)
+        qa_embedding = Embedding(input_dim=vocab_size, output_dim=weights.shape[1], weights=[weights])
         question_embedding =  qa_embedding(question)
         answer_embedding =  qa_embedding(answer)
 
