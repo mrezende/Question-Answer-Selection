@@ -87,7 +87,7 @@ def get_baseline_model():
     train_model, prediction_model = qa_model.get_lstm_cnn_model(embedding_file, vocab_size)
     logger.info('Default created: Baseline')
     logger.info('enc_timesteps = 30,\
-                               dec_timesteps = 30, hidden_dim = 50, kernel_size = 100, filters = [1]')
+                               dec_timesteps = 30, hidden_dim = 50, kernel_size = 100, filters = [2, 3, 5, 7]')
     return train_model, prediction_model
 
 def get_small_model():
@@ -108,7 +108,7 @@ def get_small_model():
     logger.info(f'enc_timesteps = {enc_timesteps},\
                                        dec_timesteps = {dec_timesteps},'
                 f' hidden_dim = {hidden_dim}, kernel_size = {kernel_size}, '
-                f'filters = {filters}')
+                f'filters = [2, 3, 5, 7]')
     return small_train_model, small_prediction_model
 
 
@@ -131,7 +131,7 @@ def get_larger_model():
     logger.info(f'enc_timesteps = {enc_timesteps},\
                                                dec_timesteps = {dec_timesteps},'
                 f' hidden_dim = {hidden_dim}, kernel_size = {kernel_size}, '
-                f'filters = {filters}')
+                f'filters = [2, 3, 5, 7]')
     return larger_train_model, larger_prediction_model
 
 
