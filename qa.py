@@ -41,7 +41,8 @@ def train(train_model, prediction_model, model_name='baseline', epochs=10, batch
     logger.info(f'Training: epochs {epochs}, batch_size {batch_size}, validation_split {validation_split}')
     # train the model
     Y = np.zeros(shape=(questions.shape[0],))
-    early_stopping = EarlyStopping(monitor='val_loss', patience=2)
+    early_stopping = EarlyStopping(monitor='val_loss', mode='min', min_delta=0.01, verbose=1, patience=50,
+                                   restore_best_weights=True)
     hist = train_model.fit(
         [questions, good_answers, bad_answers],
         Y,
