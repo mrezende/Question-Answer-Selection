@@ -191,11 +191,20 @@ def main(mode='train', question=None, answers=None, epochs=100, batch_size=64, v
         qa_data = QAData()
 
         # create model from json model's architecture saved
-        logger.info(f'Loading models architecture: model/model_architecture_{model_name}.json')
+        # logger.info(f'Loading models architecture: model/model_architecture_{model_name}.json')
+        logger.info(f'Creating predict model: {model_name}')
 
-        with open(f'model/model_architecture_{model_name}.json', 'r') as read_file:
-            json_string = read_file.read()
-        predict_model = model_from_json(json_string)
+        #with open(f'model/model_architecture_{model_name}.json', 'r') as read_file:
+        #    json_string = read_file.read()
+        #predict_model = model_from_json(json_string)
+
+        predict_model = None
+        if model_name == 'small':
+            x, predict_model = get_small_model()
+        elif model_name == 'larger':
+            x, predict_model = get_larger_model()
+        else:
+            x, predict_model = get_baseline_model()
 
         # load weights
         logger.info(f'Loading model weigths: model/train_weights_{model_name}.h5')
