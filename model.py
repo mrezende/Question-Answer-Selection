@@ -148,12 +148,12 @@ class QAModel():
         #question_answer_concatenated = concatenate([question_pool, answer_pool])
         #merged_model = Dot(axes=1, normalize=True)([question_pool, answer_pool])
 
-        dropout = Dropout(0.2)
+
 
         # qa_model = merge([dropout(question_output), dropout(answer_output)],
         #                  mode=similarity, output_shape=lambda _: (None, 1))
-        merged_model = Lambda(function=similarity, output_shape=lambda _: (None, 1))([dropout(question_pool),
-                                                                                      dropout(answer_pool)])
+        merged_model = Lambda(function=similarity, output_shape=lambda _: (None, 1))([question_pool,
+                                                                                      answer_pool])
 
         lstm_convolution_model = Model(inputs=[question, answer], outputs=merged_model, name='lstm_convolution_model')
         good_similarity = lstm_convolution_model([question, answer_good])
