@@ -172,8 +172,8 @@ class QAModel():
 
         # return the training and prediction model
         prediction_model = Model(inputs=[question, answer_good], outputs=good_similarity, name='prediction_model')
-        prediction_model.compile(loss=lambda y_true, y_pred: y_pred, optimizer="rmsprop")
+        prediction_model.compile(loss=lambda y_true, y_pred: y_pred, optimizer="adam")
         training_model = Model(inputs=[question, answer_good, answer_bad], outputs=loss, name='training_model')
-        training_model.compile(loss=lambda y_true, y_pred: y_pred, optimizer="rmsprop")
+        training_model.compile(loss=lambda y_true, y_pred: y_pred, optimizer="adam")
 
         return training_model, prediction_model
