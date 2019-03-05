@@ -34,7 +34,7 @@ def save_model_weights(model, model_name='baseline'):
     model.save_weights(f'model/train_weights_{model_name}.h5', overwrite=True)
     logger.info(f'Model weights saved: model/train_weights_{model_name}.h5')
 
-def train(train_model, prediction_model, model_name='baseline', epochs=10, batch_size=64, validation_split=0.2):
+def train(train_model, prediction_model, model_name='baseline', epochs=100, batch_size=100, validation_split=0.1):
     # load training data
     qa_data = QAData()
     questions, good_answers, bad_answers = qa_data.get_training_data()
@@ -256,8 +256,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='run question answer selection')
     parser.add_argument('--mode', metavar='MODE', type=str, default="train", help='mode: train/predict/test')
     parser.add_argument('--epochs', metavar='EPOCHS', type=int, default=100, help='epochs for train')
-    parser.add_argument('--batch_size', metavar='BATCH SIZE', type=int, default=64, help='batch size for train')
-    parser.add_argument('--validation_split', metavar='VALIDATION SPLIT', type=float, default=0.2,
+    parser.add_argument('--batch_size', metavar='BATCH SIZE', type=int, default=100, help='batch size for train')
+    parser.add_argument('--validation_split', metavar='VALIDATION SPLIT', type=float, default=0.1,
                         help='validation split: 0.1 for an example')
     parser.add_argument('--model_name', metavar='MODEL NAME', type=str, default="baseline",
                         help='model name: baseline, small, larger etc.')
