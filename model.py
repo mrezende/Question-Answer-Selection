@@ -1,6 +1,6 @@
 from keras import backend as K
 from keras.layers import Embedding
-from keras.layers import LSTM, Input, concatenate, Lambda, Dot
+from keras.layers import LSTM, Input, concatenate, Lambda, Dropout
 from keras.layers.wrappers import Bidirectional
 from keras.layers import Conv1D
 from keras.models import Model
@@ -80,7 +80,7 @@ class QAModel():
 
 
     def get_lstm_cnn_model(self,embedding_file,  vocab_size, enc_timesteps = 30,
-                           dec_timesteps = 30, hidden_dim = 50, kernel_size = 100, filters = [2, 3, 5, 7]):
+                           dec_timesteps = 30, hidden_dim = 50, filters = 500, kernel_sizes = [2, 3, 5, 7]):
         """
         Return the bilstm + cnn training and prediction model
 
@@ -110,7 +110,8 @@ class QAModel():
 
         # pass the question embedding through bi-lstm
         f_rnn = LSTM(hidden_dim, return_sequences=True)
-        b_rnn = LSTM(hidden_dim, return_sequences=True)
+        b_rnn = LSTM(hidden_dim, return_sequences=True, go_backwards=True)
+
         qf_rnn = f_rnn(question_embedding)
         qb_rnn = b_rnn(question_embedding)
         #question_pool = merge([qf_rnn, qb_rnn], mode='concat', concat_axis=-1)
@@ -124,26 +125,16 @@ class QAModel():
 
         # pass the embedding from bi-lstm through cnn
         #cnns = [Convolution1D(filter_length=filter_length,nb_filter=500,activation='tanh',border_mode='same') for filter_length in [1, 2, 3, 5]]
-        cnns = [Conv1D(filters=filter_length, kernel_size=kernel_size, activation='tanh', padding='same') for filter_length in filters]
+        cnns = [Conv1D(kernel_size=kernel_size, filters=filters, activation='tanh', padding='same')
+                for kernel_size in kernel_sizes]
 
         #question_cnn = merge([cnn(question_pool) for cnn in cnns], mode='concat')
-        question_cnn = None
-        if len(cnns) > 1:
-            question_cnn = concatenate([cnn(question_pool) for cnn in cnns])
-        else:
-            question_cnn = cnns[0](question_pool)
-        
-        
-            
+
+        question_cnn = concatenate([cnn(question_pool) for cnn in cnns], axis=-1)
 
         #answer_cnn = merge([cnn(answer_pool) for cnn in cnns], mode='concat')
-        answer_cnn = None
-        if len(cnns) > 1:
-            answer_cnn = concatenate([cnn(answer_pool) for cnn in cnns])
-        else:
-            answer_cnn = cnns[0](answer_pool)
-        
-            
+
+        answer_cnn = concatenate([cnn(answer_pool) for cnn in cnns], axis=-1)
 
         # apply max pooling
         maxpool = Lambda(lambda x: K.max(x, axis=1, keepdims=False), output_shape=lambda x: (x[0], x[2]))
@@ -156,7 +147,13 @@ class QAModel():
         #merged_model = merge([question_pool, answer_pool],mode=similarity, output_shape=lambda _: (None, 1))
         #question_answer_concatenated = concatenate([question_pool, answer_pool])
         #merged_model = Dot(axes=1, normalize=True)([question_pool, answer_pool])
-        merged_model = Lambda(function=similarity, output_shape=lambda _: (None, 1))([question_pool, answer_pool])
+
+        dropout = Dropout(0.2)
+
+        # qa_model = merge([dropout(question_output), dropout(answer_output)],
+        #                  mode=similarity, output_shape=lambda _: (None, 1))
+        merged_model = Lambda(function=similarity, output_shape=lambda _: (None, 1))([dropout(question_pool),
+                                                                                      dropout(answer_pool)])
 
         lstm_convolution_model = Model(inputs=[question, answer], outputs=merged_model, name='lstm_convolution_model')
         good_similarity = lstm_convolution_model([question, answer_good])

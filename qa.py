@@ -88,7 +88,7 @@ def get_baseline_model():
     train_model, prediction_model = qa_model.get_lstm_cnn_model(embedding_file, vocab_size)
     logger.info('Default created: Baseline')
     logger.info('enc_timesteps = 30,\
-                               dec_timesteps = 30, hidden_dim = 50, kernel_size = 100, filters = [2, 3, 5, 7]')
+                               dec_timesteps = 30, hidden_dim = 50, filters = 500, kernel_sizes = [2, 3, 5, 7]')
     return train_model, prediction_model
 
 def get_small_model():
@@ -97,19 +97,19 @@ def get_small_model():
     enc_timesteps = 30
     dec_timesteps = 30
     hidden_dim = 10
-    kernel_size = 20
+    filters = 20
     qa_model = QAModel()
     small_train_model, small_prediction_model = qa_model.get_lstm_cnn_model(embedding_file,
                                                     vocab_size,
                                                     enc_timesteps=enc_timesteps,
                                                     dec_timesteps=dec_timesteps,
-                                                    kernel_size=kernel_size,
+                                                    filters=filters,
                                                     hidden_dim=hidden_dim)
     logger.info('Model created: Small')
     logger.info(f'enc_timesteps = {enc_timesteps},\
                                        dec_timesteps = {dec_timesteps},'
-                f' hidden_dim = {hidden_dim}, kernel_size = {kernel_size}, '
-                f'filters = [2, 3, 5, 7]')
+                f' hidden_dim = {hidden_dim}, filters = {filters}, '
+                f'kernel_sizes = [2, 3, 5, 7]')
     return small_train_model, small_prediction_model
 
 
@@ -117,7 +117,7 @@ def get_larger_model():
     enc_timesteps = 30
     dec_timesteps = 30
     hidden_dim = 200
-    kernel_size = 500
+    filters = 500
 
     embedding_file, vocab_size = get_default_inputs_for_model()
 
@@ -126,13 +126,13 @@ def get_larger_model():
                                                      vocab_size,
                                                      enc_timesteps=enc_timesteps,
                                                      dec_timesteps=dec_timesteps,
-                                                     kernel_size=kernel_size,
+                                                     filters=filters,
                                                      hidden_dim=hidden_dim)
     logger.info('Model created: Larger')
     logger.info(f'enc_timesteps = {enc_timesteps},\
                                                dec_timesteps = {dec_timesteps},'
-                f' hidden_dim = {hidden_dim}, kernel_size = {kernel_size}, '
-                f'filters = [2, 3, 5, 7]')
+                f' hidden_dim = {hidden_dim}, filters = {filters}, '
+                f'kernel_sizes = [2, 3, 5, 7]')
     return larger_train_model, larger_prediction_model
 
 
